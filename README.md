@@ -99,7 +99,7 @@ A frontend-only patient registration app built using **React** and **Pglite** (S
 ## Setup Instructions
 
 1. **Clone the repository**:
-   git clone https://github.com/your-username/patient-registration-app.git
+   git clone https://github.com/vedaharish/patient_registration_pglite
    cd patient-registration-app
 
 2. **Install dependencies**:
