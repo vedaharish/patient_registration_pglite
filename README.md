@@ -68,3 +68,45 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Patient Registration App
+
+A frontend-only patient registration app built using **React** and **Pglite** (SQLite + WebAssembly) for in-browser data storage.
+
+---
+
+## Features
+
+- ✅ Register new patients (Name, Age, Gender)
+- ✅ Query patient records using SQL
+- ✅ Data persists across page refreshes
+- ✅ Works across multiple browser tabs
+- ✅ Completely frontend-only (no backend)
+
+---
+
+## Tech Stack
+
+- React (Vite)
+- Tailwind CSS
+- Pglite (SQLite via WebAssembly)
+
+---
+
+## Setup Instructions
+
+1. **Clone the repository**:
+   git clone https://github.com/your-username/patient-registration-app.git
+   cd patient-registration-app
+
+2. **Install dependencies**:
+npm install
+3. **Run the development server**:
+npm run dev
+npm start
+
+Open http://localhost:3000 in your browser to use the app.
+
