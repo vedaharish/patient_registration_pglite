@@ -1,24 +1,18 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { DBProvider } from "./db";
+import PatientForm from "./PatientForm";
+import SQLQuery from "./SQLQuery";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <DBProvider>
+      <div className="App">
+        {/* <h1>Patient Registration</h1> */}
+        
+        <PatientForm />
+        <SQLQuery />
+      </div>
+    </DBProvider>
   );
 }
 
