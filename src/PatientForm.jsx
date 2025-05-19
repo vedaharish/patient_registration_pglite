@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useDB } from "./db";
 
 function PatientForm() {
@@ -8,48 +8,63 @@ function PatientForm() {
   const [gender, setGender] = useState("");
   const [patients, setPatients] = useState([]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!db) return;
+  const escapeValue = (value) => value.replace(/'/g, "''");
 
-    await db.exec(`
-      INSERT INTO patients (name, age, gender)
-      VALUES ('${name}', ${age}, '${gender}');
-    `);
-
-    setName("");
-    setAge("");
-    setGender("");
-    fetchPatients();
-  };
-
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     if (!db) return;
 
     try {
       const result = await db.exec("SELECT * FROM patients");
       setPatients(result[0]?.rows || []);
-      console.log(result);
     } catch (error) {
       console.error("Error fetching patients:", error);
     }
-  };
-
-  useEffect(() => {
-    if(db) {
-        fetchPatients();
-    }
   }, [db]);
 
-// useEffect(() => {
-//     const storedPatients = localStorage.getItem("patients");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!db) return;
   
-//     if (storedPatients) {
-//       setPatients(JSON.parse(storedPatients));
-//     } else {
-//       fetchPatients();
-//     }
-//   }, []);
+    const escapedName = escapeValue(name);
+    const escapedGender = escapeValue(gender);
+  
+    await db.exec(
+      `INSERT INTO patients (name, age, gender)
+       VALUES ('${escapedName}', ${Number(age)}, '${escapedGender}');`
+    );
+  
+    // Update localStorage manually
+    const existing = JSON.parse(localStorage.getItem("patientData") || "[]");
+    existing.push({ name, age: Number(age), gender });
+    localStorage.setItem("patientData", JSON.stringify(existing));
+  
+    // Broadcast to other tabs
+    const channel = new BroadcastChannel("patient-db-sync");
+    channel.postMessage("sync");
+    channel.close();
+  
+    setName("");
+    setAge("");
+    setGender("");
+    fetchPatients();
+  };
+  
+
+  useEffect(() => {
+    if (db) {
+      fetchPatients();
+    }
+  }, [db, fetchPatients]);
+
+  useEffect(() => {
+    const channel = new BroadcastChannel("patient-db-sync");
+    channel.onmessage = (msg) => {
+      if (msg.data === "sync") {
+        fetchPatients();
+      }
+    };
+    return () => channel.close();
+  }, [fetchPatients]);
 
   if (loading || !db) {
     return <p className="text-center text-xl">Loading database...</p>;
@@ -86,23 +101,10 @@ function PatientForm() {
           />
         </div>
 
-        {/* <div className="flex flex-col">
-          <label htmlFor="gender" className="text-sm font-medium mb-2">Gender</label>
-          <input
-            id="gender"
-            type="text"
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
-            placeholder="Enter patient's gender"
-            className="p-2 border border-gray-300 rounded"
-            required
-          />
-
-        </div> */}
-
         <div>
-        <label htmlFor="gender" className="text-sm font-medium mb-2">Gender</label>
+          <label htmlFor="gender" className="text-sm font-medium mb-2">Gender</label>
           <select
+            id="gender"
             value={gender}
             onChange={(e) => setGender(e.target.value)}
             required

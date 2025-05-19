@@ -1,5 +1,6 @@
+// DBProvider.js
 import { createContext, useContext, useEffect, useState } from "react";
-import { PGlite } from "@electric-sql/pglite";
+import { getDB } from "./dbInstance";
 
 const DBContext = createContext(null);
 
@@ -8,38 +9,47 @@ export function DBProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("DBProvider initialized");
     const initDB = async () => {
-      const dbInstance = new PGlite();
+      const dbInstance = await getDB();
 
-      await dbInstance.exec(`
-        CREATE TABLE IF NOT EXISTS patients (
-          id SERIAL PRIMARY KEY,
-          name TEXT,
-          age INTEGER,
-          gender TEXT
-        );
-      `);
-
-      const savedDb = localStorage.getItem("patientDB");
-      if (savedDb) {
+      const savedPatients = localStorage.getItem("patientData");
+      if (savedPatients) {
         try {
-          const dbState = JSON.parse(savedDb);
-          await dbInstance.load(dbState);
+          const patients = JSON.parse(savedPatients);
+          const result = await dbInstance.exec("SELECT COUNT(*) as total FROM patients;");
+          console.log(result);
+          // let count = 0;
+          // if(result.rows) {
+          //   count = parseInt(result.rows[0].count);
+          //   console.log('count', count);
+          // }
+          
+
+          let count = 0;
+if (result.rows) {
+  count = parseInt(result.rows[0].total);
+  console.log('count', count);
+}
+
+          if (count === 0) {
+            for (const patient of patients) {
+              await dbInstance.exec(`
+                INSERT INTO patients (name, age, gender)
+                VALUES ('${patient.name}', ${patient.age}, '${patient.gender}');
+              `);
+            }
+          }
         } catch (error) {
-          localStorage.removeItem("patientDB");
+          console.error("Failed to load patients from localStorage:", error);
         }
       }
 
-      const saveDbToLocalStorage = async () => {
-        const dbState = await dbInstance.export();
-        localStorage.setItem("patientDB", JSON.stringify(dbState));
-      };
-
       const channel = new BroadcastChannel("patient-db-sync");
-      channel.onmessage = (message) => {
-        if (message.data === "sync") {
-          saveDbToLocalStorage();
-        }
+      // channel.onmessage = () => window.location.reload();
+      
+      channel.onmessage = () => {
+        console.log("Sync triggered from another tab");
       };
 
       setDb(dbInstance);
